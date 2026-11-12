@@ -1,3 +1,4 @@
+import 'screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -22,11 +23,7 @@ class LifeLinkApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('LifeLink: Firebase connected'),
-        ),
-      ),
+     home: const LoginScreen(),
     );
   }
 }
