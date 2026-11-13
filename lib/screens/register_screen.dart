@@ -1,3 +1,4 @@
+import '../services/auth_services.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -23,6 +24,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _bloodGroup;
   String? _role;
   bool _hidePassword = true;
+  final _authService = AuthService();
+bool _loading = false;
 
   @override
   void dispose() {
@@ -34,15 +37,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Form is valid (Firebase register comes next)'),
-        ),
-      );
-    }
+  Future<void> _register() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _loading = true);
+  final error = await _authService.register(
+    name: _nameController.text,
+    email: _emailController.text,
+    phone: _phoneController.text,
+    city: _cityController.text,
+    bloodGroup: _bloodGroup!,
+    role: _role!.toLowerCase(),
+    password: _passwordController.text,
+  );
+  if (!mounted) return;
+  setState(() => _loading = false);
+
+  if (error != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error)),
+    );
+  } else {
+    // Close the Register screen so the Home screen is visible.
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -189,9 +208,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _register,
-                      child: const Text('Register'),
-                    ),
+  onPressed: _loading ? null : _register,
+  child: _loading
+      ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : const Text('Register'),
+),
                   ),
                 ],
               ),

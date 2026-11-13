@@ -1,3 +1,4 @@
+import '../services/auth_services.dart';
    import 'register_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _hidePassword = true;
+  final _authService = AuthService();
+bool _loading = false;
 
   @override
   void dispose() {
@@ -21,13 +24,23 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form is valid (Firebase login comes next)')),
-      );
-    }
+  Future<void> _login() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _loading = true);
+  final error = await _authService.login(
+    _emailController.text,
+    _passwordController.text,
+  );
+  if (!mounted) return;
+  setState(() => _loading = false);
+
+  if (error != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error)),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +111,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Login'),
-                    ),
+                    child:ElevatedButton(
+  onPressed: _loading ? null : _login,
+  child: _loading
+      ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : const Text('Login'),
+),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
